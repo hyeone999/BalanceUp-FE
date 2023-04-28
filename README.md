@@ -39,7 +39,8 @@
 
 ## 개발환경
 
-<img width="750" height="750" src="/BalanceUp/src/resource/image/front-skills.png"></img>
+<img width="100%" height="850" src="/BalanceUp/src/resource/image/front-skills.png"></img>
+<img width="100%" height="750" src="/BalanceUp/src/resource/image/back-skills.png"></img>
 
 ## 앱화면
 
