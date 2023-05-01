@@ -1,21 +1,14 @@
 import React, {useEffect} from 'react';
-import {StyleSheet, Text, View, TouchableOpacity, Button} from 'react-native';
-import {
-  KakaoOAuthToken,
-  getProfile as getKakaoProfile,
-  logout,
-  unlink,
-  loginWithKakaoAccount,
-} from '@react-native-seoul/kakao-login';
+import {StyleSheet, Text, View, TouchableOpacity} from 'react-native';
+import {loginWithKakaoAccount} from '@react-native-seoul/kakao-login';
 import {GoogleSignin} from '@react-native-google-signin/google-signin';
-import auth from '@react-native-firebase/auth';
+// import auth from '@react-native-firebase/auth';
 import {
   loginKakao,
   SignInKakao,
   loginGoogle,
-  SignInGoogle,
 } from '../../actions/memberJoinApi';
-import {useRecoilState} from 'recoil';
+import {useSetRecoilState} from 'recoil';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   userNameState,
@@ -33,36 +26,12 @@ import {
   responsiveHeight,
   responsiveWidth,
 } from 'react-native-responsive-dimensions';
-import PushNotification from 'react-native-push-notification';
 
-// const naverLogin = async (): Promise<void> => {
-//   console.log('dd');
-//   const token: NaverLoginResponse = await NaverLogin.login(info);
-//   console.log(token);
-// };
 const googleSigninConfigure = () => {
   GoogleSignin.configure({
     webClientId:
       '702679288927-s3riqhj1pv7uvc4vlnhp5o8823mqjpkh.apps.googleusercontent.com',
   });
-};
-
-const signOutWithKakao = async (): Promise<void> => {
-  const message = await logout();
-
-  // setResult(message);
-};
-
-//   const getKakaoProfile = async (): Promise<void> => {
-//     const profile: KakaoProfile = await getProfile();
-
-//     setResult(JSON.stringify(profile));
-//   };
-
-const unlinkKakao = async (): Promise<void> => {
-  const message = await unlink();
-
-  // setResult(message);
 };
 
 // const androidKeys = {
@@ -71,20 +40,19 @@ const unlinkKakao = async (): Promise<void> => {
 //   kServiceAppName: 'keyum',
 // }; // 추후에 process.env로 빼기
 
-export default function Login({navigation}) {
-  React.useEffect(() => {
+export default function Login({navigation: {navigate}}) {
+  useEffect(() => {
     googleSigninConfigure();
   });
-  // const [login, setLoginState] = React.useState(0);
-  const [userName, setUserName] = useRecoilState(userNameState);
-  const [jwt, setjwt] = useRecoilState(jwtState);
-  const [KorG, setKorG] = useRecoilState(userLogin);
-  const [jwtRefresh, setJwtRefresh] = useRecoilState(jwtRefreshState);
 
-  const signInWithKakao = async (): Promise<void> => {
-    const token: KakaoOAuthToken = await loginWithKakaoAccount();
+  const setUserName = useSetRecoilState(userNameState);
+  const setjwt = useSetRecoilState(jwtState);
+  const setKorG = useSetRecoilState(userLogin);
+  const setJwtRefresh = useSetRecoilState(jwtRefreshState);
 
-    // console.log(token.accessToken);
+  const signInWithKakao = async () => {
+    const token = await loginWithKakaoAccount();
+
     let res;
     await loginKakao(token.accessToken).then(response => {
       res = response;
@@ -92,16 +60,15 @@ export default function Login({navigation}) {
       if (res.body.login === 'sign-up') {
         setUserName(res.body.username);
         setKorG('K');
-        navigation.push('NickName');
+        navigate('NickName');
       } else if (res.body.login === 'sign-in') {
-        // setUserName(res.body.username);
-        AsyncStorage.setItem('username', res.body.username); // test 임시 저장
+        AsyncStorage.setItem('username', res.body.username);
         signInKakao(res.body.username);
       }
     });
   };
 
-  const signInKakao = async (userName): Promise<void> => {
+  const signInKakao = async userName => {
     let res;
     await SignInKakao(userName).then(response => {
       res = response;
@@ -115,12 +82,12 @@ export default function Login({navigation}) {
           JSON.stringify(res.body.refreshToken),
         );
         deleteExpiredRoutine();
-        navigation.push('Main');
+        navigate('Main');
       }
     });
   };
 
-  const signInGoogle = async (userName): Promise<void> => {
+  const signInGoogle = async userName => {
     let res;
     await SignInKakao(userName).then(response => {
       res = response;
@@ -134,31 +101,26 @@ export default function Login({navigation}) {
           JSON.stringify(res.body.refreshToken),
         );
         deleteExpiredRoutine();
-        navigation.push('Main');
+        navigate('Main');
       }
     });
   };
 
-  const onGoogleButtonPress = async (): Promise<void> => {
-    const {idToken} = await GoogleSignin.signIn();
+  const onGoogleButtonPress = async () => {
+    // const {idToken} = await GoogleSignin.signIn();
     const code = await GoogleSignin.getTokens();
-    const googleCredential = auth.GoogleAuthProvider.credential(idToken);
+    // const googleCredential = auth.GoogleAuthProvider.credential(idToken);
     console.log(code);
 
-    // const token = await auth().signInWithCredential(googleCredential);
     const token = code;
     await loginGoogle(token.accessToken).then(response => {
       let res = response;
-      // console.log(response);
       if (res.body.login === 'sign-up') {
         setUserName(res.body.username);
         setKorG('G');
-        navigation.push('NickName');
-        // AsyncStorage.setItem('username', res.body.username); // test 임시 저장
-        // signInGoogle(res.body.username);
+        navigate('NickName');
       } else if (res.body.login === 'sign-in') {
-        // setUserName(res.body.username);
-        AsyncStorage.setItem('username', res.body.username); // test 임시 저장
+        AsyncStorage.setItem('username', res.body.username);
         signInGoogle(res.body.username);
       }
     });
@@ -170,7 +132,6 @@ export default function Login({navigation}) {
         <FastImage style={styles.loginImg} source={Login_Onboading} />
       </View>
       <Text style={styles.title}>만나서 반가워요!</Text>
-
       <Text style={styles.subTitle}>로그인 할 계정을 선택해 주세요</Text>
       <TouchableOpacity
         activeOpacity={1.0}
@@ -181,7 +142,7 @@ export default function Login({navigation}) {
       <TouchableOpacity
         activeOpacity={1.0}
         style={styles.btnGoogle}
-        onPress={() => onGoogleButtonPress()}>
+        onPress={onGoogleButtonPress}>
         <GoogleSvg />
       </TouchableOpacity>
     </View>
