@@ -6,6 +6,7 @@ module.exports = {
     'spaced-comment': 'error',
     'no-duplicate-imports': 'warn',
     'react-hooks/rules-of-hooks': 'warn', // Checks rules of Hooks
+    'react-native/no-inline-styles': 0,
     'prettier/prettier': [
       'error',
       {
