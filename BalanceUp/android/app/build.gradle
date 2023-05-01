@@ -274,8 +274,9 @@ dependencies {
 
     implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.0.0"
 
-    implementation group: 'com.kakao.sdk', name: 'usermgmt', version: project.KAKAO_SDK_VERSION
-     implementation 'com.google.firebase:firebase-auth'
+    //implementation group: 'com.kakao.sdk', name: 'usermgmt', version: project.KAKAO_SDK_VERSION
+    implementation "com.kakao.sdk:v2-user:2.13.0" // 카카오 로그인
+    implementation 'com.google.firebase:firebase-auth'
      
     debugImplementation("com.facebook.flipper:flipper:${FLIPPER_VERSION}") {
         exclude group:'com.facebook.fbjni'
