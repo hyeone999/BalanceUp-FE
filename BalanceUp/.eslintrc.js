@@ -7,6 +7,7 @@ module.exports = {
     'no-duplicate-imports': 'warn',
     'react-hooks/rules-of-hooks': 'warn', // Checks rules of Hooks
     'react-native/no-inline-styles': 0,
+    'no-shadow': 'off',
     'prettier/prettier': [
       'error',
       {
