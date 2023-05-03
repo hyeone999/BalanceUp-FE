@@ -23,8 +23,7 @@ import {duplicationCheckAPI} from '../../actions/checkNameAPI';
 import NameOnboarding from '../../resource/image/Name/NameOnboarding.png';
 import ErrorSvg from '../../resource/image/Name/name_error.svg';
 
-const NameScreen = ({navigation}) => {
-  const [userName, setUserName] = useState('');
+const NameScreen = ({navigation: {navigate}}) => {
   const [checkTextError, setCheckTextError] = useState('');
   const [checkTextPass, setCheckTextPass] = useState('');
   const [checkDisabled, setCheckDisabled] = useState(true);
@@ -32,47 +31,35 @@ const NameScreen = ({navigation}) => {
   const [nickName, setNickName] = useRecoilState(nickNameState);
 
   useEffect(() => {
-    setDisabled(!checkTextPass);
-  }, [checkTextPass]);
+    setDisabled(!checkTextPass); // pass = disabled(false)
+    setCheckDisabled(!(nickName && !checkTextError)); // 닉네임 규칙이 맞지 않으면 중복확인 버튼 disabled
+  }, [checkTextPass, nickName, checkTextError]);
 
-  useEffect(() => {
-    setCheckDisabled(!(userName && !checkTextError));
-  }, [userName, checkTextError]);
-
-  const handleTextChange = userName => {
-    setUserName(userName);
+  const handleTextChange = nickName => {
+    setNickName(nickName);
     setCheckTextError(
-      validateText(userName)
+      validateText(nickName)
         ? ''
         : '닉네임에 특수문자 및 공백을 포함할 수 없어요',
     );
-    setCheckTextPass(validateText(userName) ? '' : null);
 
-    // 글자수 제한
-    if (userName.length >= 11) {
+    // 중복확인 성공 후 유저가 닉네임을 선택하지 않고,
+    // 닉네임을 다시 입력해서 그 닉네임이 정규식을 위반할시 text 변경 + 중복확인 비활성화
+    setCheckTextPass(validateText(nickName) ? '' : null);
+
+    // 글자수 11자 제한
+    if (nickName.length >= 11) {
       setCheckTextError('11글자 이상 입력 불가합니다');
-    } else if (userName.length === 0) {
-      setUserName('');
-      setCheckTextError('');
-      setCheckTextPass('');
     }
   };
 
   // 중복 확인 구현
   const duplicationCheck = () => {
-    duplicationCheckAPI(userName).then(response => {
-      if (response === true) {
-        setCheckTextPass('사용 가능한 닉네임이에요!');
-      } else if (response === false) {
-        setCheckTextError('이미 존재하는 닉네임이에요');
-      }
+    duplicationCheckAPI(nickName).then(response => {
+      response === true
+        ? setCheckTextPass('사용 가능한 닉네임이에요!')
+        : setCheckTextError('이미 존재하는 닉네임이에요');
     });
-  };
-
-  const goAgree = () => {
-    setNickName(userName);
-    console.log(nickName);
-    navigation.navigate('Agree');
   };
 
   return (
@@ -94,7 +81,7 @@ const NameScreen = ({navigation}) => {
         <View style={styles.form}>
           <View style={styles.inputWrapper}>
             <TextInput
-              value={userName}
+              value={nickName}
               onChangeText={handleTextChange}
               style={[
                 styles.textInput,
@@ -123,13 +110,24 @@ const NameScreen = ({navigation}) => {
               </Text>
             </TouchableOpacity>
           </View>
-          {!checkTextError && !checkTextPass ? (
-            <Text style={styles.inputText}>
-              11자 내로 작성해 주세요 (공백, 특수문자 불가)
-            </Text>
-          ) : null}
-          <Text style={styles.errorText}>{checkTextError}</Text>
-          <Text style={styles.passText}>{checkTextPass}</Text>
+          <Text
+            style={[
+              styles.inputText,
+              {
+                color:
+                  !checkTextError && !checkTextPass
+                    ? '#AFAFAF'
+                    : checkTextError
+                    ? '#F05D5D'
+                    : '#00B528',
+              },
+            ]}>
+            {!checkTextError && !checkTextPass
+              ? '11자 내로 작성해 주세요 (공백, 특수문자 불가)'
+              : checkTextError
+              ? checkTextError
+              : checkTextPass}
+          </Text>
         </View>
         <View style={styles.gifView}>
           <FastImage style={styles.onboardingImg} source={NameOnboarding} />
@@ -139,7 +137,7 @@ const NameScreen = ({navigation}) => {
             styles.nextButton,
             {backgroundColor: disabled ? '#CED6FF' : '#585FFF'},
           ]}
-          onPress={goAgree}
+          onPress={() => navigate('Agree')}
           activeOpacity={1.0}
           disabled={disabled}>
           <Text style={styles.nextButtonText}>다음</Text>
@@ -224,7 +222,6 @@ const styles = StyleSheet.create({
     marginBottom: responsiveHeight(6),
   },
   inputText: {
-    color: '#AFAFAF',
     marginTop: -13,
     fontSize: 12,
     fontFamily: 'Pretendard-Medium',
