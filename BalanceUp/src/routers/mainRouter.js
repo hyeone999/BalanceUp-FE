@@ -3,7 +3,7 @@ import {createStackNavigator} from '@react-navigation/stack';
 import {NavigationContainer} from '@react-navigation/native';
 import MainScreen from '../screens/home/MainScreen';
 import LookAll from '../screens/home/LookAll';
-import SetTodoScreen from '../screens/SetTodo/SetTodoScreen';
+import SetCategoryScreen from '../screens/SetTodo/SetCategoryScreen';
 import SetPlanScreen from '../screens/SetTodo/SetPlanScreen';
 import MyPage from '../screens/myPage/MyPage';
 import Withdrawal from '../screens/myPage/Withdrawal';
@@ -11,6 +11,7 @@ import Login from '../screens/Login/Login';
 import Notice from '../screens/myPage/Notice';
 import Guide from '../screens/Guide';
 import Name from '../screens/register/NameScreen';
+import AgreeScreen from '../screens/register/AgreeScreen';
 
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import OnHome from '../resource/image/BottomTab/home_on.svg';
@@ -25,7 +26,6 @@ import {
   responsiveFontSize,
   responsiveHeight,
 } from 'react-native-responsive-dimensions';
-import AgreeScreen from '../screens/register/AgreeScreen';
 
 const Tab = createBottomTabNavigator();
 
@@ -62,7 +62,7 @@ const ScreenTabRouter = () => {
       />
       <Tab.Screen
         name="Set"
-        component={SetTodoScreen}
+        component={SetCategoryScreen}
         options={{
           tabBarLabel: '루틴설정',
           headerShown: false,

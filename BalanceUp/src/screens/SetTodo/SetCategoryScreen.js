@@ -20,7 +20,7 @@ import {
   responsiveWidth,
 } from 'react-native-responsive-dimensions';
 
-const SetTodoScreen = ({navigation: {navigate}}) => {
+const SetCategoryScreen = ({navigation: {navigate}}) => {
   const [disabled, setDisabled] = useState(true);
   const [selected, setSelected] = useState(new Map());
   const [todoTitle, setTodoTitle] = useState('');
@@ -183,4 +183,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default SetTodoScreen;
+export default SetCategoryScreen;
