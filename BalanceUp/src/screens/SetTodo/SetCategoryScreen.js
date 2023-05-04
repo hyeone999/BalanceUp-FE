@@ -8,12 +8,8 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import {Shadow} from 'react-native-shadow-2';
+import {todoData} from '../../resource/data/SetCategoryScreenText';
 import FastImage from 'react-native-fast-image';
-
-import education from '../../resource/image/SetTodo/education.png';
-import health from '../../resource/image/SetTodo/health.png';
-import life from '../../resource/image/SetTodo/life.png';
-import mental from '../../resource/image/SetTodo/mental.png';
 import {
   responsiveFontSize,
   responsiveHeight,
@@ -24,32 +20,6 @@ const SetCategoryScreen = ({navigation: {navigate}}) => {
   const [disabled, setDisabled] = useState(true);
   const [selected, setSelected] = useState(new Map());
   const [todoTitle, setTodoTitle] = useState('');
-  const todoData = [
-    {
-      id: 1,
-      title: '운동',
-      subTitle: '체력을 기를래요!',
-      img: health,
-    },
-    {
-      id: 2,
-      title: '학습',
-      subTitle: '습득력이 높아져요!',
-      img: education,
-    },
-    {
-      id: 3,
-      title: '일상',
-      subTitle: '지구력이 상승해요!',
-      img: life,
-    },
-    {
-      id: 4,
-      title: '마음관리',
-      subTitle: '회복력이 좋아져요!',
-      img: mental,
-    },
-  ];
 
   // select 되었을 때의 event
   const onSelect = (id, title) => {
@@ -63,8 +33,6 @@ const SetCategoryScreen = ({navigation: {navigate}}) => {
     setTodoTitle(title);
     setDisabled(false);
   };
-
-  console.log(todoTitle);
 
   const Item = ({id, img, title, subTitle, selected, onSelect}) => {
     return (
