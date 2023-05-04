@@ -36,4 +36,3 @@ export function HomeStackScreen() {
     </NavigationContainer>
   );
 }
-exports.default = HomeStackScreen;
