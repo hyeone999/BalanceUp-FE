@@ -16,72 +16,82 @@ import {
 } from '../../recoil/atom';
 import {
   responsiveFontSize,
-  responsiveHeight,
   responsiveWidth,
 } from 'react-native-responsive-dimensions';
 import * as Progress from 'react-native-progress';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {useRecoilState} from 'recoil';
+import {useRecoilValue, useSetRecoilState} from 'recoil';
 import {joinKakao, joinGoogle} from '../../actions/memberJoinApi';
 
 import CheckOn from '../../resource/image/Agree/check_on.svg';
 import CheckOff from '../../resource/image/Agree/check_off.svg';
 import MoreInfoArrow from '../../resource/image/Agree/moreInfoArrow.svg';
+import {FlatList} from 'react-native-gesture-handler';
 
-const AgreeScreen = ({navigation}) => {
+const AgreeScreen = ({navigation: {navigate}}) => {
   const [disabled, setDisabled] = useState(false);
   const [allCheck, setAllCheck] = useState(false);
-  const [useCheck, setUseCheck] = useState(false);
   const [serviceCheck, setServiceCheck] = useState(false);
+  const [useCheck, setUseCheck] = useState(false);
   const [ageCheck, setAgeCheck] = useState(false);
-  const [nickName, setNickName] = useRecoilState(nickNameState);
-  const [userName, setUserName] = useRecoilState(userNameState);
-  const [jwt, setjwt] = useRecoilState(jwtState);
-  const [KorG, setKorG] = useRecoilState(userLogin);
-  const [jwtRefresh, setJwtRefresh] = useRecoilState(jwtRefreshState);
+  const nickName = useRecoilValue(nickNameState);
+  const userMail = useRecoilValue(userNameState);
+  const setjwt = useSetRecoilState(jwtState);
+  const KorG = useRecoilValue(userLogin);
+  const setJwtRefresh = useSetRecoilState(jwtRefreshState);
+
+  const textData = [
+    {
+      id: 1,
+      title: '[필수] 서비스 이용약관에 동의합니다.',
+      check: serviceCheck,
+      onPress: () => setServiceCheck(prev => !prev),
+      link: () =>
+        Linking.openURL(
+          'https://keyum.notion.site/KEYUM-dd9853b3ffa74f34951a57cfb7d195ce',
+        ),
+    },
+    {
+      id: 2,
+      title: '[필수] 개인정보 수집 / 이용에 동의합니다.',
+      check: useCheck,
+      onPress: () => setUseCheck(prev => !prev),
+      link: () =>
+        Linking.openURL(
+          'https://keyum.notion.site/KEYUM-ef4e1a7f198d4cec8d4642c3bf7cc0a4',
+        ),
+    },
+    {
+      id: 3,
+      title: '[필수] 만 14세 이상입니다.',
+      check: ageCheck,
+      onPress: () => setAgeCheck(prev => !prev),
+    },
+  ];
 
   const allBtnEvent = () => {
-    if (allCheck === false) {
-      setAllCheck(true);
-      setUseCheck(true);
-      setServiceCheck(true);
-      setAgeCheck(true);
-    } else {
-      setAllCheck(false);
-      setUseCheck(false);
-      setServiceCheck(false);
-      setAgeCheck(false);
-    }
-  };
-
-  const useBtnEvent = () => {
-    useCheck ? setUseCheck(false) : setUseCheck(true);
-  };
-
-  const serviceBtnEvent = () => {
-    serviceCheck ? setServiceCheck(false) : setServiceCheck(true);
-  };
-
-  const ageBtnEvent = () => {
-    ageCheck ? setAgeCheck(false) : setAgeCheck(true);
+    allCheck === false
+      ? (setAllCheck(true),
+        setServiceCheck(true),
+        setUseCheck(true),
+        setAgeCheck(true))
+      : (setAllCheck(false),
+        setServiceCheck(false),
+        setUseCheck(false),
+        setAgeCheck(false));
   };
 
   useEffect(() => {
-    if (ageCheck === true && useCheck === true && serviceCheck === true) {
-      setAllCheck(true);
-    } else {
-      setAllCheck(false);
-    }
-  }, [ageCheck, useCheck, serviceCheck, allCheck]);
-
-  useEffect(() => {
+    serviceCheck === true && useCheck === true && ageCheck === true
+      ? setAllCheck(true)
+      : setAllCheck(false);
     setDisabled(!allCheck);
-  }, [allCheck]);
+  }, [useCheck, serviceCheck, ageCheck, allCheck]);
 
-  const goJoin = async (): Promise<void> => {
+  const handleJoin = async () => {
     let res;
     if (KorG === 'K') {
-      await joinKakao(userName, nickName).then(response => {
+      await joinKakao(userMail, nickName).then(response => {
         res = response;
         if (res.resultCode === 'success') {
           // jwt 로컬 스토리지 저장후 메인화면 보내기
@@ -93,11 +103,11 @@ const AgreeScreen = ({navigation}) => {
             'jwtRefresh',
             JSON.stringify(res.body.refreshToken),
           );
-          navigation.push('Main');
+          navigate('Main');
         }
       });
     } else {
-      await joinGoogle(userName, nickName).then(response => {
+      await joinGoogle(userMail, nickName).then(response => {
         res = response;
         if (res.resultCode === 'success') {
           // jwt 로컬 스토리지 저장후 메인화면 보내기
@@ -109,11 +119,39 @@ const AgreeScreen = ({navigation}) => {
             'jwtRefresh',
             JSON.stringify(res.body.refreshToken),
           );
-          navigation.push('Main');
+          navigate('Main');
         }
       });
     }
   };
+
+  const CheckItem = ({id, title, onPress, link, check}) => (
+    <View style={styles.btnWrap}>
+      {check ? (
+        <CheckOn
+          width={22}
+          height={22}
+          style={styles.checkBox}
+          onPress={onPress}
+        />
+      ) : (
+        <CheckOff
+          width={22}
+          height={22}
+          style={styles.checkBox}
+          onPress={onPress}
+        />
+      )}
+      <Text style={styles.agreeText}>{title}</Text>
+      {id === 3 ? null : (
+        <MoreInfoArrow
+          hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}
+          onPress={link}
+          style={styles.arrowBtnStyle}
+        />
+      )}
+    </View>
+  );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -137,89 +175,26 @@ const AgreeScreen = ({navigation}) => {
           <Text style={styles.allAgreeText}>모두 동의합니다</Text>
         </View>
         <View style={styles.boderLine} />
-        <View style={styles.btnWrap}>
-          {useCheck ? (
-            <CheckOn
-              width={22}
-              height={22}
-              style={styles.checkBox}
-              onPress={useBtnEvent}
-            />
-          ) : (
-            <CheckOff
-              width={22}
-              height={22}
-              style={styles.checkBox}
-              onPress={useBtnEvent}
+        <FlatList
+          data={textData}
+          renderItem={({item}) => (
+            <CheckItem
+              id={item.id}
+              title={item.title}
+              onPress={item.onPress}
+              link={item.link}
+              check={item.check}
             />
           )}
-          <Text style={styles.agreeText}>
-            [필수] 서비스 이용약관에 동의합니다.
-          </Text>
-          <MoreInfoArrow
-            hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}
-            onPress={() =>
-              Linking.openURL(
-                'https://keyum.notion.site/KEYUM-dd9853b3ffa74f34951a57cfb7d195ce',
-              )
-            }
-            style={styles.arrowBtnStyle}
-          />
-        </View>
-        <View style={styles.btnWrap}>
-          {serviceCheck ? (
-            <CheckOn
-              width={22}
-              height={22}
-              style={styles.checkBox}
-              onPress={serviceBtnEvent}
-            />
-          ) : (
-            <CheckOff
-              width={22}
-              height={22}
-              style={styles.checkBox}
-              onPress={serviceBtnEvent}
-            />
-          )}
-          <Text style={styles.agreeText}>
-            [필수] 개인정보 수집 / 이용에 동의합니다.
-          </Text>
-          <MoreInfoArrow
-            hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}
-            onPress={() =>
-              Linking.openURL(
-                'https://keyum.notion.site/KEYUM-ef4e1a7f198d4cec8d4642c3bf7cc0a4',
-              )
-            }
-            style={styles.arrowBtnStyle}
-          />
-        </View>
-        <View style={styles.btnWrap}>
-          {ageCheck ? (
-            <CheckOn
-              width={22}
-              height={22}
-              style={styles.checkBox}
-              onPress={ageBtnEvent}
-            />
-          ) : (
-            <CheckOff
-              width={22}
-              height={22}
-              style={styles.checkBox}
-              onPress={ageBtnEvent}
-            />
-          )}
-          <Text style={styles.agreeText}>[필수] 만 14세 이상입니다.</Text>
-        </View>
+          keyExtractor={item => item.id}
+        />
       </View>
       <TouchableOpacity
         style={[
           styles.nextButton,
           {backgroundColor: disabled ? '#CED6FF' : '#585FFF'},
         ]}
-        onPress={goJoin}
+        onPress={handleJoin}
         activeOpacity={1.0}
         disabled={disabled}>
         <Text style={styles.nextButtonText}>다음</Text>
