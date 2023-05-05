@@ -89,6 +89,7 @@ export default function Login({navigation: {navigate}}) {
 
   const signInGoogle = async userName => {
     let res;
+    console.log('press');
     await SignInKakao(userName).then(response => {
       res = response;
       if (res.resultCode === 'success') {

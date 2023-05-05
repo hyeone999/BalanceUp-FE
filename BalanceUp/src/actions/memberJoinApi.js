@@ -6,7 +6,7 @@ const loginKakao = async params => {
   let res;
   console.log(params);
   await axios
-    .get('https://api.keyum.co.kr/login/kakao', {
+    .get(`${api}/login/kakao`, {
       params: {accessToken: String(params)},
       withCredentials: true,
     })
@@ -19,21 +19,11 @@ const loginKakao = async params => {
     });
   return res;
 };
-// const loginKakao = async params => {
-//   let tmp = 'accessToken' + '=' + String(params);
-
-//   fetch('https://api.keyum.co.kr/login/kakao?' + tmp, {
-//     method: 'GET',
-//     credentials: 'include',
-//   })
-//     .then(res => console.log(res))
-//     .catch(err => console.log(err));
-// };
 
 const loginGoogle = async params => {
   let res;
   await axios
-    .get('https://api.keyum.co.kr/login/google', {
+    .get(`${api}/login/google`, {
       params: {accessToken: params},
     })
     .then(response => {
@@ -51,7 +41,7 @@ const joinKakao = async (userName, nickName) => {
   console.log(nickName);
   let res;
   await axios
-    .post('https://api.keyum.co.kr/auth/sign-up/kakao', {
+    .post(`${api}/auth/sign-up/kakao`, {
       username: userName,
       provider: 'kakao',
       nickname: nickName,
@@ -65,12 +55,13 @@ const joinKakao = async (userName, nickName) => {
     });
   return res;
 };
+
 const joinGoogle = async (userName, nickName) => {
   console.log(userName);
   console.log(nickName);
   let res;
   await axios
-    .post('https://api.keyum.co.kr/auth/sign-up/google', {
+    .post(`${api}/auth/sign-up/google`, {
       username: userName,
       provider: 'google',
       nickname: nickName,
@@ -89,7 +80,7 @@ const SignInKakao = async userName => {
   console.log(userName);
   let res;
   await axios
-    .post(api + '/auth/sign-in/kakao', {
+    .post(`${api}/auth/sign-in/kakao`, {
       username: userName,
       provider: 'kakao',
     })
@@ -102,11 +93,12 @@ const SignInKakao = async userName => {
     });
   return res;
 };
+
 const SignInGoogle = async userName => {
   console.log(userName);
   let res;
   await axios
-    .post(api + '/auth/sign-in/google', {
+    .post(`${api}/auth/sign-in/google`, {
       username: userName,
       provider: 'google',
     })
@@ -124,7 +116,7 @@ const getRefreshToken = async (userName, token, refreshToken) => {
   let res;
   console.log(userName);
   await axios
-    .post(api + '/auth/refresh', {
+    .post(`${api}/auth/refresh`, {
       username: userName,
       accessToken: token,
       refreshToken: refreshToken,
