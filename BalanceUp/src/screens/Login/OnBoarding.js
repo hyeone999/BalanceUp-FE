@@ -7,7 +7,7 @@ import {
 } from 'react-native-responsive-dimensions';
 import Swiper from 'react-native-swiper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {useRecoilState} from 'recoil';
+import {useSetRecoilState} from 'recoil';
 import FastImage from 'react-native-fast-image';
 import {getRefreshToken} from '../../actions/memberJoinApi';
 import {jwtState, jwtRefreshState} from '../../recoil/atom';
@@ -19,8 +19,8 @@ import NextBtn from '../../resource/image/Onboarding/NextBtn.svg';
 import PrevBtn from '../../resource/image/Onboarding/PrevBtn.svg';
 
 export default function OnBoarding({navigation}) {
-  const [setjwt] = useRecoilState(jwtState);
-  const [setJwtRefresh] = useRecoilState(jwtRefreshState);
+  const setjwt = useSetRecoilState(jwtState);
+  const setJwtRefresh = useSetRecoilState(jwtRefreshState);
 
   useEffect(() => {
     checkJwt('jwt');
@@ -55,7 +55,6 @@ export default function OnBoarding({navigation}) {
           res = response;
           if (res.resultCode === 'success') {
             // jwt 로컬 스토리지 저장후 메인화면 보내기
-            console.log(res.body.refreshToken);
             setjwt(res.body.token);
             setJwtRefresh(res.body.refreshToken);
 

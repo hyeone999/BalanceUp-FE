@@ -2,7 +2,7 @@ import React, {useEffect} from 'react';
 import {StyleSheet, Text, View, TouchableOpacity} from 'react-native';
 import {loginWithKakaoAccount} from '@react-native-seoul/kakao-login';
 import {GoogleSignin} from '@react-native-google-signin/google-signin';
-// import auth from '@react-native-firebase/auth';
+import auth from '@react-native-firebase/auth';
 import {
   loginKakao,
   SignInKakao,
@@ -89,7 +89,6 @@ export default function Login({navigation: {navigate}}) {
 
   const signInGoogle = async userName => {
     let res;
-    console.log('press');
     await SignInKakao(userName).then(response => {
       res = response;
       if (res.resultCode === 'success') {
@@ -108,9 +107,9 @@ export default function Login({navigation: {navigate}}) {
   };
 
   const onGoogleButtonPress = async () => {
-    // const {idToken} = await GoogleSignin.signIn();
+    const {idToken} = await GoogleSignin.signIn();
     const code = await GoogleSignin.getTokens();
-    // const googleCredential = auth.GoogleAuthProvider.credential(idToken);
+    const googleCredential = auth.GoogleAuthProvider.credential(idToken);
     console.log(code);
 
     const token = code;
@@ -121,7 +120,6 @@ export default function Login({navigation: {navigate}}) {
         setKorG('G');
         navigate('NickName');
       } else if (res.body.login === 'sign-in') {
-        AsyncStorage.setItem('username', res.body.username);
         signInGoogle(res.body.username);
       }
     });
@@ -149,6 +147,7 @@ export default function Login({navigation: {navigate}}) {
     </View>
   );
 }
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
