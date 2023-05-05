@@ -10,7 +10,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useRecoilState} from 'recoil';
 import FastImage from 'react-native-fast-image';
 import {getRefreshToken} from '../../actions/memberJoinApi';
-import {deleteExpiredRoutine} from '../../actions/routineAPI';
 import {jwtState, jwtRefreshState} from '../../recoil/atom';
 import {TextData} from '../../resource/data/OnBoardingText';
 
@@ -39,7 +38,7 @@ export default function OnBoarding({navigation}) {
     }
   };
 
-  const checkJwt = async key => {
+  const checkJwt = async () => {
     try {
       const dataToken = await getData('jwt');
       const dataRefreshToekn = await getData('jwtRefresh');
@@ -48,7 +47,6 @@ export default function OnBoarding({navigation}) {
       if (dataToken !== null) {
         const decodeUserName = jwt_decode(dataToken);
         let res;
-        await deleteExpiredRoutine();
         await getRefreshToken(
           decodeUserName.username,
           dataToken,
