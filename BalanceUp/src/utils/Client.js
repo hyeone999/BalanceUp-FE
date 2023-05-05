@@ -22,7 +22,6 @@ axiosInstance.interceptors.response.use(
     return response;
   },
   async error => {
-    //console.log(error);
     const {
       config,
       response: {status},
@@ -64,7 +63,7 @@ axiosInstance.interceptors.response.use(
 
         return await axios(originalRequest);
       } catch (err) {
-        new Error(err);
+        console.log(err);
       }
     }
     return Promise.reject(error);
