@@ -5,17 +5,14 @@ import {
   Modal,
   Pressable,
   TouchableOpacity,
-  Dimensions,
   Animated,
   TouchableWithoutFeedback,
   TextInput,
   Keyboard,
   Switch,
   FlatList,
-  // Platform,
-  // PermissionsAndroid,
+  DeviceEventEmitter,
 } from 'react-native';
-import {DeviceEventEmitter} from 'react-native';
 import Toast from 'react-native-easy-toast';
 import DatePicker from 'react-native-date-picker';
 import modalInnerStyles from '../../css/modalStyles';
@@ -24,57 +21,24 @@ import PushNotification from 'react-native-push-notification';
 import moment from 'moment';
 import BackArrow from '../../resource/image/Common/backArrow.svg';
 import {createRoutine, modifyRoutine} from '../../actions/routineAPI';
-import {useRecoilState, useRecoilValue} from 'recoil';
-import {nickNameState, jwtState} from '../../recoil/atom';
-import {dateState, routineStateNum} from '../../recoil/appState';
-import {routineStateDaysSet, alarmChanged} from '../../recoil/userState';
+import {useRecoilState, useRecoilValue, useSetRecoilState} from 'recoil';
+import {nickNameState} from '../../recoil/atom';
+import {routineStateNum} from '../../recoil/appState';
+import {alarmChanged} from '../../recoil/userState';
+import {dayData} from '../../resource/data/SetPlanScreenText';
 
 const SetPlanScreen = ({navigation: {navigate}, route}) => {
-  const {planText} = route.params;
-  const {routineId} = route.params;
-  const {routineTitle} = route.params;
-  const {days} = route.params;
-  const {alarm} = route.params;
+  const {planText, routineId, routineTitle, days, alarm} = route.params;
 
-  const [nickName, setNickName] = useRecoilState(nickNameState);
-  const [alarmChange, setAlarmChanged] = useRecoilState(alarmChanged);
+  const toastRef = useRef();
+
+  const nickName = useRecoilValue(nickNameState);
+  const setAlarmChanged = useSetRecoilState(alarmChanged);
   const [isEditing, setIsEditing] = useState(false);
   const [selected, setSelected] = useState(new Map());
-  const [lengthTodo, setLengthTodo] = useState(0);
   const [todoText, setTodoText] = useState('');
-  const dayData = [
-    {
-      id: 1,
-      title: '월',
-    },
-    {
-      id: 2,
-      title: '화',
-    },
-    {
-      id: 3,
-      title: '수',
-    },
-    {
-      id: 4,
-      title: '목',
-    },
-    {
-      id: 5,
-      title: '금',
-    },
-    {
-      id: 6,
-      title: '토',
-    },
-    {
-      id: 7,
-      title: '일',
-    },
-  ];
 
-  const [dayText, setDayText] = useState('');
-  const dayBy = ['월', '화', '수', '목', '금', '토', '일'];
+  const [dayText, setDayText] = useState([]);
 
   const [clearModalVisible, setClearModalVisible] = useState(false);
 
@@ -87,22 +51,12 @@ const SetPlanScreen = ({navigation: {navigate}, route}) => {
   const [open, setOpen] = useState(false); // 알림 기본 설정 = false
   const [shouldShow, setShouldShow] = useState(false); // 알림 기본 설정 = false
   const [disabled, setDisabled] = useState(false);
-  const [token, setToken] = useRecoilState(jwtState);
-  const selectTodo = useRecoilValue(routineStateDaysSet(token, 0));
   const [routineRefresh, setRoutineStateNum] = useRecoilState(routineStateNum);
-  // const selectTodo = useRecoilValue(routineStateDaysSet(token,0));
-  // const [routineRefresh, setRoutineStateNum] = useRecoilState(routineStateNum);
 
-  // 모달 기능 구현
-  const screenHeight = Dimensions.get('screen').height;
-
-  const panY = useRef(new Animated.Value(screenHeight)).current;
-
-  const resetBottomSheet = Animated.timing(panY, {
-    toValue: 0,
-    duration: 20,
-    useNativeDriver: true,
-  });
+  // 토스트 메세지
+  const showCopyToast = useCallback(() => {
+    toastRef.current.show('진행 요일은 수정할 수 없어요.');
+  }, []);
 
   useEffect(() => {
     return () => {
@@ -114,24 +68,24 @@ const SetPlanScreen = ({navigation: {navigate}, route}) => {
     PushNotification.setApplicationIconBadgeNumber(0);
   }, []);
 
-  useEffect(() => {
-    if (clearModalVisible) {
-      resetBottomSheet.start();
-    }
-  }, [clearModalVisible]);
-
+  // 루틴 수정모드 기능 처리
   useEffect(() => {
     if (routineId != null) {
-      setIsEditing(true), setTodoText(routineTitle), setTime(alarm);
+      setIsEditing(true);
+      setTodoText(routineTitle);
+      setTime(alarm);
     }
-    if (alarm === null) {
-      setIsEnabled(false);
-      setShouldShow(false);
-    } else if (alarm != null) {
+    // alarm이 있을경우 switch on 처리
+    if (alarm != null) {
       setIsEnabled(true);
       setShouldShow(true);
     }
-  }, []);
+  }, [routineId, routineTitle, alarm]);
+
+  // 버튼 활성화/비활성화
+  useEffect(() => {
+    setDisabled(todoText.length !== 0 && dayText.length !== 0 ? false : true);
+  }, [todoText.length, dayText.length]);
 
   // 팝업 알림 설정 구현
   const notify = (routineId, days, alarmTime) => {
@@ -187,39 +141,22 @@ const SetPlanScreen = ({navigation: {navigate}, route}) => {
     console.log(retrunTime);
     return retrunTime;
   };
-
-  // 버튼 활성화/비활성화
-  useEffect(() => {
-    setDisabled(!(lengthTodo && dayText));
-  }, [lengthTodo, dayText]);
-
-  useEffect(() => {
-    if (dayText.length === 0) {
-      setDayText('');
-    }
-  }, [dayText]);
-
-  // input 기능 구현
-  const handleTextChange = toDo => {
-    setLengthTodo(toDo.length);
-    setTodoText(toDo);
-  };
+  console.log(isEditing);
 
   // 요일 선택 기능 구현
-  const onSelect = useCallback(
+  const handleSelect = useCallback(
     (id, title) => {
-      const newSelected = new Map(selected);
-      newSelected.set(id, !selected.get(id));
-      setSelected(newSelected);
-      !selected.get(id)
-        ? setDayText([...dayText, title])
-        : setDayText(dayText.filter(str => str !== title));
+      setSelected(selected => {
+        const newSelected = new Map(selected);
+        newSelected.set(id, !selected.get(id));
+        !selected.get(id) ? dayText.push(title) : dayText.pop();
+        return newSelected;
+      });
     },
-    [selected],
+    [dayText],
   );
 
   // 시간 토글 스위치 구현
-  const toggleSwitch = () => setIsEnabled(previousState => !previousState);
   const handleSwitchOn = () => {
     setShouldShow(!shouldShow);
     isEnabled ? setTime('') : setTime('09:00');
@@ -228,15 +165,18 @@ const SetPlanScreen = ({navigation: {navigate}, route}) => {
   // 루틴 설정 완료 버튼 구현
   const handleCheck = () => {
     setClearModalVisible(!clearModalVisible);
-    console.log(days);
+    // 요일 순으로 정렬
     setDayText(
-      [...dayText].sort((a, b) => dayBy.indexOf(a) - dayBy.indexOf(b)),
+      [...dayText].sort(
+        (a, b) =>
+          dayData.map(day => day.title).indexOf(a) -
+          dayData.map(day => day.title).indexOf(b),
+      ),
     );
   };
 
   // 루틴 생성
   const handleCreate = async () => {
-    // let beforeArray = JSON.parse(JSON.stringify(selectTodo));
     await createRoutine(todoText, planText, dayText, time).then(res => {
       if (res === '루틴 갯수는 4개를 초과할 수 없습니다.') {
         setClearModalVisible(false);
@@ -272,8 +212,7 @@ const SetPlanScreen = ({navigation: {navigate}, route}) => {
           tmpArray.push(callback[i]);
         }
       }
-      //console.log(time);
-      if (time != undefined) {
+      if (time !== undefined) {
         for (var j = 0; j < tmpArray.length; j++) {
           let beforeDate = tmpArray[j].date;
           console.log(beforeDate);
@@ -322,14 +261,8 @@ const SetPlanScreen = ({navigation: {navigate}, route}) => {
     navigate('Home');
   };
 
-  // 토스트 메세지
-  const toastRef = useRef();
-
-  const showCopyToast = useCallback(() => {
-    toastRef.current.show('진행 요일은 수정할 수 없어요.');
-  }, []);
-
-  const Item = ({id, title, selected, onSelect}) => {
+  // 요일 선택 Icon
+  const Item = ({id, title, selected, handleSelect}) => {
     return (
       <TouchableOpacity
         style={[
@@ -337,37 +270,11 @@ const SetPlanScreen = ({navigation: {navigate}, route}) => {
           {backgroundColor: selected ? '#585FFF' : '#CED6FF'},
         ]}
         activeOpacity={1.0}
-        onPress={() => (isEditing ? showCopyToast() : onSelect(id, title))}>
+        onPress={() => (isEditing ? showCopyToast() : handleSelect(id, title))}>
         <Text style={styles.btnText}>{title}</Text>
       </TouchableOpacity>
     );
   };
-
-  // 알림 권한 확인 => 안드로이드 13버전부터 가능, 우리 코드는 안드로이드 12버전 <확인 필요>
-  // useEffect(() => {
-  //   if (Platform.OS === 'android') {
-  //     const requestCameraPermission = async () => {
-  //       try {
-  //         const granted = await PermissionsAndroid.request(
-  //           PermissionsAndroid.PERMISSIONS.CAMERA,
-  //           {
-  //             title: 'Camera Permission',
-  //             message: 'App needs permission for camera access',
-  //             buttonPositive: 'OK',
-  //           },
-  //         );
-  //         if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-  //           console.log('success');
-  //         } else {
-  //           console.log('Please camera permission');
-  //         }
-  //       } catch (err) {
-  //         console.log('Camera permission err');
-  //       }
-  //     };
-  //     requestCameraPermission();
-  //   }
-  // }, []);
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
@@ -381,48 +288,30 @@ const SetPlanScreen = ({navigation: {navigate}, route}) => {
           style={styles.toastView}
           textStyle={styles.toastText}
         />
-        {isEditing ? (
-          <TouchableOpacity
-            activeOpacity={1.0}
-            onPress={() => navigate('Home')}>
-            <BackArrow style={styles.arrowBtn} />
-          </TouchableOpacity>
-        ) : (
-          <TouchableOpacity activeOpacity={1.0} onPress={() => navigate('Set')}>
-            <BackArrow style={styles.arrowBtn} />
-          </TouchableOpacity>
-        )}
+        <TouchableOpacity
+          activeOpacity={1.0}
+          onPress={() => {
+            isEditing ? navigate('Home') : navigate('Set');
+          }}>
+          <BackArrow style={styles.arrowBtn} />
+        </TouchableOpacity>
         <Text style={styles.topTitle}>
           나를 키울 루틴은 {'\n'}어떻게 진행되나요?
         </Text>
-        {isEditing ? (
-          <View style={styles.inputSheet}>
-            <Text style={styles.inputText}>루틴명</Text>
-            <Text style={styles.count}>{todoText.length}/10</Text>
-            <TextInput
-              style={styles.inputStyle}
-              fontSize={16}
-              maxLength={10}
-              autoCapitalize="none"
-              value={todoText}
-              onChangeText={handleTextChange}
-            />
-          </View>
-        ) : (
-          <View style={styles.inputSheet}>
-            <Text style={styles.inputText}>루틴명</Text>
-            <Text style={styles.count}>{lengthTodo}/10</Text>
-            <TextInput
-              style={styles.inputStyle}
-              fontSize={16}
-              maxLength={10}
-              autoCapitalize="none"
-              placeholderTextColor="#AFAFAF"
-              placeholder="ex) 물💧 마시기!"
-              onChangeText={handleTextChange}
-            />
-          </View>
-        )}
+        <View style={styles.inputSheet}>
+          <Text style={styles.inputText}>루틴명</Text>
+          <Text style={styles.count}>{todoText.length}/10</Text>
+          <TextInput
+            style={styles.inputStyle}
+            fontSize={16}
+            maxLength={10}
+            autoCapitalize="none"
+            placeholderTextColor="#AFAFAF"
+            placeholder={isEditing ? null : 'ex) 물💧 마시기!'}
+            value={todoText}
+            onChangeText={text => setTodoText(text)}
+          />
+        </View>
         <View style={styles.daySelect}>
           <Text style={styles.daySelectText}>진행 요일</Text>
           <Text style={styles.recText}>주 2일 이상 루틴을 실천해 보세요</Text>
@@ -437,7 +326,7 @@ const SetPlanScreen = ({navigation: {navigate}, route}) => {
                 id={item.id}
                 title={item.title}
                 selected={!!selected.get(item.id)}
-                onSelect={onSelect}
+                handleSelect={handleSelect}
               />
             )}
             keyExtractor={item => item.id}
@@ -450,7 +339,7 @@ const SetPlanScreen = ({navigation: {navigate}, route}) => {
           <Switch
             trackColor={{false: '#CED6FF', true: '#585FFF'}}
             thumbColor={isEnabled ? '#FFFFFF' : '#FFFFFF'}
-            onValueChange={toggleSwitch}
+            onValueChange={() => setIsEnabled(previousState => !previousState)}
             value={isEnabled}
             onChange={handleSwitchOn}
             style={[
@@ -464,7 +353,7 @@ const SetPlanScreen = ({navigation: {navigate}, route}) => {
         <View>
           {shouldShow ? (
             <View style={styles.timeView}>
-              <Text style={styles.timeText}>{time}</Text>
+              <Text style={styles.timeText}>{isEnabled ? time : ''}</Text>
               <TouchableOpacity
                 style={{position: 'absolute', right: 17}}
                 activeOpacity={1.0}
@@ -498,29 +387,22 @@ const SetPlanScreen = ({navigation: {navigate}, route}) => {
             }}
           />
         </View>
-        {isEditing ? (
-          <View style={styles.nextBtnSheet}>
-            <TouchableOpacity
-              style={styles.nextBtn}
-              activeOpacity={1.0}
-              onPress={handleCheck}>
-              <Text style={styles.nextBtnText}>완료</Text>
-            </TouchableOpacity>
-          </View>
-        ) : (
-          <View style={styles.nextBtnSheet}>
-            <TouchableOpacity
-              style={[
-                styles.nextBtn,
-                {backgroundColor: disabled ? '#CED6FF' : '#585FFF'},
-              ]}
-              activeOpacity={1.0}
-              disabled={disabled}
-              onPress={handleCheck}>
-              <Text style={styles.nextBtnText}>완료</Text>
-            </TouchableOpacity>
-          </View>
-        )}
+        <View style={styles.nextBtnSheet}>
+          <TouchableOpacity
+            style={
+              isEditing
+                ? styles.nextBtn
+                : [
+                    styles.nextBtn,
+                    {backgroundColor: disabled ? '#CED6FF' : '#585FFF'},
+                  ]
+            }
+            activeOpacity={1.0}
+            disabled={isEditing ? false : disabled}
+            onPress={handleCheck}>
+            <Text style={styles.nextBtnText}>완료</Text>
+          </TouchableOpacity>
+        </View>
 
         {/* 완료 모달 구현 코드 */}
         <Modal
@@ -564,21 +446,12 @@ const SetPlanScreen = ({navigation: {navigate}, route}) => {
                     onPress={() => setClearModalVisible(false)}>
                     <Text style={modalInnerStyles.noText}>아니요</Text>
                   </TouchableOpacity>
-                  {isEditing ? (
-                    <TouchableOpacity
-                      activeOpacity={1.0}
-                      onPress={handleEdit}
-                      style={modalInnerStyles.yesBtn}>
-                      <Text style={modalInnerStyles.nextText}>맞습니다!</Text>
-                    </TouchableOpacity>
-                  ) : (
-                    <TouchableOpacity
-                      activeOpacity={1.0}
-                      onPress={handleCreate}
-                      style={modalInnerStyles.yesBtn}>
-                      <Text style={modalInnerStyles.nextText}>맞습니다!</Text>
-                    </TouchableOpacity>
-                  )}
+                  <TouchableOpacity
+                    activeOpacity={1.0}
+                    onPress={isEditing ? handleEdit : handleCreate}
+                    style={modalInnerStyles.yesBtn}>
+                    <Text style={modalInnerStyles.nextText}>맞습니다!</Text>
+                  </TouchableOpacity>
                 </View>
               </Animated.View>
             </TouchableWithoutFeedback>
