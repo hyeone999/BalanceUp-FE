@@ -37,6 +37,7 @@
     "react-native": "0.70.4",
     "react-native-calendars": "^1.1291.1",
     "react-native-date-picker": "^4.2.6",
+    "react-native-dotenv": "^3.4.8",
     "react-native-easy-toast": "^2.3.0",
     "react-native-fast-image": "^8.6.3",
     "react-native-gesture-handler": "^2.8.0",
