@@ -1,11 +1,9 @@
-import axios from 'axios';
-import {api} from '../utils/Api';
-import axiosInstance from '../utils/Client';
+import axios from '../utils/Client';
 
 const duplicationCheckAPI = async userName => {
   let return_value;
   await axios
-    .get(api + '/nicknames', {
+    .get('/nicknames', {
       params: {
         nickname: userName,
       },
@@ -24,7 +22,7 @@ const duplicationCheckAPI = async userName => {
 
 const ChangeNameAPI = async userName => {
   let return_value;
-  await axiosInstance
+  await axios
     .put('/user/nickname', {
       nickname: userName,
     })

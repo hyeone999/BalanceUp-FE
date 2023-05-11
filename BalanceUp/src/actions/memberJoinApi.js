@@ -1,12 +1,10 @@
-import axios from 'axios';
-import {api} from '../utils/Api';
-import axiosInstance from '../utils/Client';
+import axios from '../utils/Client';
 
 const loginKakao = async params => {
   let res;
   console.log(params);
   await axios
-    .get(`${api}/login/kakao`, {
+    .get('/login/kakao', {
       params: {accessToken: String(params)},
       withCredentials: true,
     })
@@ -23,7 +21,7 @@ const loginKakao = async params => {
 const loginGoogle = async params => {
   let res;
   await axios
-    .get(`${api}/login/google`, {
+    .get('/login/google', {
       params: {accessToken: params},
     })
     .then(response => {
@@ -41,7 +39,7 @@ const joinKakao = async (userName, nickName) => {
   console.log(nickName);
   let res;
   await axios
-    .post(`${api}/auth/sign-up/kakao`, {
+    .post('/auth/sign-up/kakao', {
       username: userName,
       provider: 'kakao',
       nickname: nickName,
@@ -61,7 +59,7 @@ const joinGoogle = async (userName, nickName) => {
   console.log(nickName);
   let res;
   await axios
-    .post(`${api}/auth/sign-up/google`, {
+    .post('/auth/sign-up/google', {
       username: userName,
       provider: 'google',
       nickname: nickName,
@@ -80,7 +78,7 @@ const SignInKakao = async userName => {
   console.log(userName);
   let res;
   await axios
-    .post(`${api}/auth/sign-in/kakao`, {
+    .post('/auth/sign-in/kakao', {
       username: userName,
       provider: 'kakao',
     })
@@ -98,7 +96,7 @@ const SignInGoogle = async userName => {
   console.log(userName);
   let res;
   await axios
-    .post(`${api}/auth/sign-in/google`, {
+    .post('/auth/sign-in/google', {
       username: userName,
       provider: 'google',
     })
@@ -116,7 +114,7 @@ const getRefreshToken = async (userName, token, refreshToken) => {
   let res;
   console.log(userName);
   await axios
-    .post(`${api}/auth/refresh`, {
+    .post('/auth/refresh', {
       username: userName,
       accessToken: token,
       refreshToken: refreshToken,
@@ -132,7 +130,7 @@ const getRefreshToken = async (userName, token, refreshToken) => {
 };
 
 const userWithdraw = async () => {
-  await axiosInstance
+  await axios
     .delete('/withdraw')
     .then(response => {
       console.log(response.data);

@@ -12,14 +12,10 @@ const createRoutine = async (todoText, planText, dayText, time) => {
     .then(response => {
       console.log(response.data);
       res = response.data;
-      // console.log(response);
-      // res = response;
     })
     .catch(function (error) {
       console.log(error.response.data);
       res = error.response.data.message;
-      // console.log(error);
-      //res = error;
     });
   return res;
 };
@@ -66,7 +62,6 @@ const getAllRoutine = async () => {
   await axios
     .get('/routines')
     .then(response => {
-      //console.log(response.data);
       res = response.data;
     })
     .catch(function (error) {
@@ -123,6 +118,7 @@ const cancelOneRoutine = async (routineId, day) => {
     });
   return res;
 };
+
 const deleteExpiredRoutine = async () => {
   let res;
   await axios

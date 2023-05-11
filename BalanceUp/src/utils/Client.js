@@ -1,9 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
-import {api} from './Api';
 
 const axiosInstance = axios.create({
-  baseURL: api,
+  baseURL: process.env.API_KEY,
 });
 
 axiosInstance.interceptors.request.use(
