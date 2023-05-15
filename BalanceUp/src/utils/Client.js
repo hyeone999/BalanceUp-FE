@@ -60,7 +60,7 @@ axiosInstance.interceptors.response.use(
         AsyncStorage.setItem('jwt', JSON.stringify(newToken));
         AsyncStorage.setItem('jwtRefresh', JSON.stringify(newRefreshToken));
 
-        return await axios(originalRequest);
+        return await axiosInstance(originalRequest);
       } catch (err) {
         console.log(err);
       }
