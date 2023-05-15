@@ -19,12 +19,8 @@ import NextBtn from '../../resource/image/Onboarding/NextBtn.svg';
 import PrevBtn from '../../resource/image/Onboarding/PrevBtn.svg';
 
 export default function OnBoarding({navigation}) {
-  const setjwt = useSetRecoilState(jwtState);
+  const setJwt = useSetRecoilState(jwtState);
   const setJwtRefresh = useSetRecoilState(jwtRefreshState);
-
-  useEffect(() => {
-    checkJwt('jwt');
-  });
 
   const getData = async key => {
     try {
@@ -38,39 +34,40 @@ export default function OnBoarding({navigation}) {
     }
   };
 
-  const checkJwt = async () => {
-    try {
-      const dataToken = await getData('jwt');
-      const dataRefreshToekn = await getData('jwtRefresh');
+  useEffect(() => {
+    const checkJwt = async () => {
+      try {
+        const dataToken = await getData('jwt');
+        const dataRefreshToken = await getData('jwtRefresh');
 
-      // jwt 체크후 있으면 main화면으로 이동하며 토큰 재발급
-      if (dataToken !== null) {
-        const decodeUserName = jwt_decode(dataToken);
-        let res;
-        await getRefreshToken(
-          decodeUserName.username,
-          dataToken,
-          dataRefreshToekn,
-        ).then(response => {
-          res = response;
-          if (res.resultCode === 'success') {
-            // jwt 로컬 스토리지 저장후 메인화면 보내기
-            setjwt(res.body.token);
-            setJwtRefresh(res.body.refreshToken);
+        if (dataToken !== null) {
+          const decodedUserName = jwt_decode(dataToken);
+          let res;
+          await getRefreshToken(
+            decodedUserName.username,
+            dataToken,
+            dataRefreshToken,
+          ).then(response => {
+            res = response;
+            if (res.resultCode === 'success') {
+              setJwt(res.body.token);
+              setJwtRefresh(res.body.refreshToken);
 
-            AsyncStorage.setItem('jwt', JSON.stringify(res.body.token));
-            AsyncStorage.setItem(
-              'jwtRefresh',
-              JSON.stringify(res.body.refreshToken),
-            );
-            navigation.push('Main');
-          }
-        });
+              AsyncStorage.setItem('jwt', JSON.stringify(res.body.token));
+              AsyncStorage.setItem(
+                'jwtRefresh',
+                JSON.stringify(res.body.refreshToken),
+              );
+              navigation.push('Main');
+            }
+          });
+        }
+      } catch (error) {
+        console.log(error.message);
       }
-    } catch (error) {
-      console.log(error.message);
-    }
-  };
+    };
+    checkJwt();
+  }, []);
 
   const [btnDisabled, setBtnDisabled] = useState(true);
 
