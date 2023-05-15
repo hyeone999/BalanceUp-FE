@@ -28,6 +28,7 @@ import {
   responsiveHeight,
   responsiveWidth,
 } from 'react-native-responsive-dimensions';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const MyPage = ({navigation: {navigate}}) => {
   const [userName, setUserName] = useState('');
@@ -135,9 +136,16 @@ const MyPage = ({navigation: {navigate}}) => {
   };
 
   // 네이게이션 구현
-  const goLogout = () => {
-    setLogoutModalVisible(false);
-    navigate('Login');
+  const goLogout = async () => {
+    try {
+      await AsyncStorage.removeItem('jwt');
+      await AsyncStorage.removeItem('jwtRefresh');
+
+      setLogoutModalVisible(false);
+      navigate('Login');
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   const onClick = (id, func) => {
