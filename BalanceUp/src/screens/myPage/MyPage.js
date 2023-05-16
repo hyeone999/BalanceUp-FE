@@ -29,9 +29,10 @@ import {
   responsiveWidth,
 } from 'react-native-responsive-dimensions';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {sheetData, sheetData_} from '../../resource/data/MyPageText';
 
 const MyPage = ({navigation: {navigate}}) => {
-  const [userName, setUserName] = useState('');
+  const [userName, setUserName] = useState();
   const [nickName, setNickName] = useRecoilState(nickNameState);
   const [showIcon, setShowIcon] = useRecoilState(show);
   const [checkTextError, setCheckTextError] = useState('');
@@ -40,28 +41,6 @@ const MyPage = ({navigation: {navigate}}) => {
   const [disabled, setDisabled] = useState(true);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [logoutModalVisible, setLogoutModalVisible] = useState(false);
-
-  const sheetData = [
-    {
-      id: 1,
-      title: '닉네임 설정',
-    },
-    {
-      id: 2,
-      title: '공지사항',
-      func: 'Notice',
-    },
-  ];
-  const sheetData_ = [
-    {
-      id: 1,
-      title: '개인정보 처리 방침',
-    },
-    {
-      id: 2,
-      title: '서비스 이용약관',
-    },
-  ];
 
   // 모달 기능 구현
   const screenHeight = Dimensions.get('screen').height;
@@ -78,52 +57,45 @@ const MyPage = ({navigation: {navigate}}) => {
     if (isModalVisible) {
       resetBottomSheet.start();
     }
-  }, [isModalVisible]);
-
-  useEffect(() => {
     if (logoutModalVisible) {
       resetBottomSheet.start();
     }
-  }, [logoutModalVisible]);
+  }, [isModalVisible, logoutModalVisible]);
 
   // Text Input 기능
   useEffect(() => {
-    setDisabled(!checkTextPass);
-  }, [checkTextPass]);
-
-  useEffect(() => {
-    setCheckDisabled(!(userName && !checkTextError));
-  }, [userName, checkTextError]);
+    setDisabled(!checkTextPass); // pass = disabled(false)
+    setCheckDisabled(!(userName && !checkTextError)); // 닉네임 규칙이 맞지 않으면 중복확인 버튼 disabled
+  }, [checkTextPass, userName, checkTextError]);
 
   const handleTextChange = userName => {
     setUserName(userName);
     setCheckTextError(
       validateText(userName)
         ? ''
-        : '닉네임에 특수문자 및 공백을 포함 할 수 없어요',
+        : '닉네임에 특수문자 및 공백을 포함할 수 없어요',
     );
+
+    // 중복확인 성공 후 유저가 닉네임을 선택하지 않고,
+    // 닉네임을 다시 입력해서 그 닉네임이 정규식을 위반할시 text 변경 + 중복확인 비활성화
     setCheckTextPass(validateText(userName) ? '' : null);
 
-    // 글자수 제한
+    // 글자수 11자 제한
     if (userName.length >= 11) {
-      setCheckTextError('11글자 이하 사용 불가능합니다');
-    } else if (userName.length === 0) {
-      setUserName('');
-      setCheckTextError('');
-      setCheckTextPass('');
+      setCheckTextError('11글자 이상 입력 불가합니다');
     }
   };
 
-  const duplicationCheckName = () => {
+  // 중복 확인 구현
+  const duplicationCheck = () => {
     duplicationCheckAPI(userName).then(response => {
-      if (response === true) {
-        setCheckTextPass('사용 가능한 닉네임이에요!');
-      } else if (response === false) {
-        setCheckTextError('이미 존재하는 닉네임입니다');
-      }
+      response === true
+        ? setCheckTextPass('사용 가능한 닉네임이에요!')
+        : setCheckTextError('이미 존재하는 닉네임이에요');
     });
   };
 
+  // 닉네임 변경 구현
   const handleChangeName = () => {
     ChangeNameAPI(userName).then(
       setNickName(userName),
@@ -271,7 +243,7 @@ const MyPage = ({navigation: {navigate}}) => {
                         {borderColor: checkTextPass ? '#CED6FF' : '#585FFF'},
                       ]}
                       activeOpacity={1.0}
-                      onPress={duplicationCheckName}
+                      onPress={duplicationCheck}
                       disabled={checkDisabled}>
                       <Text
                         style={[
