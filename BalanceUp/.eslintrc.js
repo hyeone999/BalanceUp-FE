@@ -9,6 +9,7 @@ module.exports = {
     'react-native/no-inline-styles': 0,
     'react-hooks/exhaustive-deps': 'off',
     'no-shadow': 'off',
+    'no-sequences': 'off',
     'prettier/prettier': [
       'error',
       {
