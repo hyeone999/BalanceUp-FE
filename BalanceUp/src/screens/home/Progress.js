@@ -49,7 +49,7 @@ import axios from '../../utils/Client';
 import PushNotification from 'react-native-push-notification';
 import Toast from 'react-native-easy-toast';
 import Clock from '../../resource/image/Main/clock.svg';
-import {categoryImgs} from '../../resource/data/MainPageData';
+import {categoryImgs} from '../../resource/data/ProgressPageData';
 
 const Progress = () => {
   const route = useRoute();
