@@ -141,7 +141,7 @@ export default function Guide({navigation: {navigate}}) {
           </View>
         </Shadow>
       </View>
-      <View style={{height: 40}}></View>
+      <View style={{height: 40}} />
     </ScrollView>
   );
 }
