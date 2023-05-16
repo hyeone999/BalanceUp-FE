@@ -28,7 +28,7 @@ axiosInstance.interceptors.response.use(
 
     const originalRequest = config;
 
-    if (status === 403) {
+    if (status === 403 && originalRequest.url !== '/auth/refresh') {
       const username = await AsyncStorage.getItem('username');
       const token = await AsyncStorage.getItem('jwt');
       const refreshToken = await AsyncStorage.getItem('jwtRefresh');
