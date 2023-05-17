@@ -31,10 +31,9 @@ import {
 } from 'react-native-calendars';
 import {Shadow} from 'react-native-shadow-2';
 import {Progress as ProgressComponent} from './Progress';
-import {useRecoilState, useRecoilValue} from 'recoil';
-import {jwtState} from '../../recoil/atom';
+import {useRecoilValue, useSetRecoilState} from 'recoil';
 import {dateState, routineStateNum} from '../../recoil/appState';
-import {nickNameState, userRpState} from '../../recoil/atom';
+import {nickNameState, userRpState, jwtState} from '../../recoil/atom';
 import {routineStateDaysSet, alarmChanged} from '../../recoil/userState';
 import {
   responsiveFontSize,
@@ -44,6 +43,11 @@ import {
 import PushNotification from 'react-native-push-notification';
 
 import moment from 'moment';
+import {
+  LEVELRPSTATE,
+  LEVELSTATE,
+  UPRPSTATE,
+} from '../../resource/data/LevelData';
 
 LocaleConfig.locales.fr = {
   monthNames: [
@@ -85,29 +89,22 @@ let month = today.getMonth() + 1; // 월
 let date = today.getDate(); // 날짜
 
 const MainScreen = ({navigation: {navigate}}) => {
-  const [nickName, setNickName] = useRecoilState(nickNameState);
-  const [routineRefresh, setRoutineStateNum] = useRecoilState(routineStateNum);
-  const [alarmChange, setAlarmChanged] = useRecoilState(alarmChanged);
-  const [userRp, setUserRp] = useRecoilState(userRpState);
-  const [token, setToken] = useRecoilState(jwtState);
+  const nickName = useRecoilValue(nickNameState);
+  const routineRefresh = useRecoilValue(routineStateNum);
+  const alarmChange = useRecoilValue(alarmChanged);
+  const userRp = useRecoilValue(userRpState);
+  const token = useRecoilValue(jwtState);
   const [userLevel, setUserLevel] = useState(1);
   const [upRp, setUpRp] = useState(20);
   const [nextLevel, setNextLevel] = useState(2);
   const [tmp, setTmp] = useState(0);
   const [todoTotal, setTodoTotal] = useState([0, 0, 0, 0]);
   const [todoCompleted, setTodoCompleted] = useState([0, 0, 0, 0]);
-  const [dateSelected, setDateState] = useRecoilState(dateState);
+  const setDateState = useSetRecoilState(dateState);
   const [routineDays, setRoutineDays] = useState({});
   const [checkedDateColor, setCheckedDateColor] = useState('#FFFFFF');
   const [checkedDate, setCheckedDate] = useState();
   const selectTodo = useRecoilValue(routineStateDaysSet(token, 0));
-  const upRpState = [
-    40, 60, 80, 100, 120, 140, 160, 180, 200, 220, 240, 260, 280, 300,
-  ];
-  const levelRpState = [
-    20, 39, 59, 79, 99, 119, 139, 159, 179, 199, 219, 239, 259, 279, 299,
-  ];
-  const levelState = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16];
   const fomatToday =
     year.toString() + '-' + month.toString() + '-' + date.toString();
   const [selectedDate, setSelectedDate] = useState(
@@ -118,16 +115,33 @@ const MainScreen = ({navigation: {navigate}}) => {
   const [showUpModal, setShowUpModal] = useState(false);
   const [gif, setGif] = useState(lv1);
 
+  // 모달 기능 구현
+  const screenHeight = Dimensions.get('screen').height;
+
+  const panY = useRef(new Animated.Value(screenHeight)).current;
+
+  const resetBottomSheet = Animated.timing(panY, {
+    toValue: 0,
+    duration: 10,
+    useNativeDriver: true,
+  });
+
+  useEffect(() => {
+    if (levelUpModalVisible || levelUp_ModalVisible) {
+      resetBottomSheet.start();
+    }
+  }, [levelUpModalVisible, levelUp_ModalVisible]);
+
   // RP 레벨 처리
   useEffect(() => {
     for (let i = 0; i < 14; i++) {
       setUserLevel(1);
       setUpRp(20);
       setNextLevel(2);
-      if (userRp >= levelRpState[i] && userRp <= levelRpState[i + 1]) {
-        setUserLevel(levelState[i]);
-        setNextLevel(levelState[i + 1]);
-        setUpRp(upRpState[i]);
+      if (userRp >= LEVELRPSTATE[i] && userRp <= LEVELRPSTATE[i + 1]) {
+        setUserLevel(LEVELSTATE[i]);
+        setNextLevel(LEVELSTATE[i + 1]);
+        setUpRp(UPRPSTATE[i]);
         break;
       }
     }
@@ -145,14 +159,14 @@ const MainScreen = ({navigation: {navigate}}) => {
     }
 
     // 6레벨 달성시 레벨업 Modal
-    if (userLevel === 6 && showUpModal === true) {
+    if (userLevel === 6 && showUpModal) {
       setLevelUpModalVisible(true);
       setTimeout(() => setGif(lv2), 3000);
       // 레벨업시 한번만 실행을 위해 다시 false
       setShowUpModal(false);
 
       // 16레벨 달성시 레벨업 Modal
-    } else if (userLevel === 16 && showUpModal == true) {
+    } else if (userLevel === 16 && showUpModal) {
       setLevelUp_ModalVisible(true);
       setTimeout(() => setGif(lv3), 2000);
       // 레벨업시 한번만 실행을 위해 다시 false
@@ -166,23 +180,22 @@ const MainScreen = ({navigation: {navigate}}) => {
       setGif(lv2);
     }
   }, [userRp, userLevel]);
-  // console.log('state', showUpModal);
 
   // 루틴 날짜 객체 생성
-  let tmpObj = {};
   let tmpMonth = ('0' + month).slice(-2); // 오늘 제외
   let tmpDate = ('0' + date).slice(-2);
   let tmpToday = year + '-' + tmpMonth + '-' + tmpDate;
 
   const setCheckValue = () => {
-    for (var i = 0; i < selectTodo.length - 1; i++) {
-      if (selectTodo[i].day != tmpToday) {
+    const tmpObj = {};
+    for (let i = 0; i < selectTodo.length; i++) {
+      if (selectTodo[i].day !== tmpToday) {
         tmpObj[selectTodo[i].day] = {
           selected: true,
           selectedColor: '#F4F7FF',
           selectedTextColor: '#000000',
         };
-      } else if (selectTodo[i].day === tmpToday) {
+      } else {
         setCheckedDateColor('#F4F7FF');
         tmpObj[selectTodo[i].day] = {
           selected: true,
@@ -197,7 +210,7 @@ const MainScreen = ({navigation: {navigate}}) => {
   // 날짜 누를시 선택날짜 색변화
   const checkSelectedDate = date => {
     setDateState(date);
-    tmpObj = JSON.parse(JSON.stringify(routineDays));
+    const tmpObj = {...routineDays};
     let tmpColor;
     if (tmpObj[date] === undefined) {
       tmpColor = '#FFFFFF';
@@ -211,7 +224,6 @@ const MainScreen = ({navigation: {navigate}}) => {
       tmpColor = tmpObj[date].selectedColor;
     }
 
-    tmpObj[date].selected = true;
     tmpObj[date].selectedColor = '#585FFF';
     tmpObj[date].selectedTextColor = '#FFFFFF';
 
@@ -226,62 +238,25 @@ const MainScreen = ({navigation: {navigate}}) => {
     setCheckedDateColor(tmpColor);
   };
 
+  // 루틴 전체 불러오기
   const setTodo = async res => {
     res = selectTodo[selectTodo.length - 1];
-    let completedTmp, totalTmp;
-    completedTmp = [0, 0, 0, 0];
-    totalTmp = [0, 0, 0, 0];
-    for (var i = 0; i < res.length; i++) {
-      // 루틴 전체 불러오기
-      if (res[i].routineCategory === '일상') {
-        if (res[i].completed === true) {
-          completedTmp[0] += 1;
-          totalTmp[0] += 1;
-        } else {
-          totalTmp[0] += 1;
-        }
-      } else if (res[i].routineCategory === '학습') {
-        if (res[i].completed === true) {
-          completedTmp[1] += 1;
-          totalTmp[1] += 1;
-        } else {
-          totalTmp[1] += 1;
-        }
-      } else if (res[i].routineCategory === '마음관리') {
-        if (res[i].completed === true) {
-          completedTmp[2] += 1;
-          totalTmp[2] += 1;
-        } else {
-          totalTmp[2] += 1;
-        }
-      } else if (res[i].routineCategory === '운동') {
-        if (res[i].completed === true) {
-          completedTmp[3] += 1;
-          totalTmp[3] += 1;
-        } else {
-          totalTmp[3] += 1;
-        }
+    const completedTmp = [0, 0, 0, 0];
+    const totalTmp = [0, 0, 0, 0];
+
+    for (let i = 0; i < res.length; i++) {
+      const category = res[i].routineCategory;
+      // index = category 값에 대응하는 completedTmp와 totalTmp의 index
+      const index = {일상: 0, 학습: 1, 마음관리: 2, 운동: 3}[category];
+      if (res[i].completed === true) {
+        completedTmp[index] += 1;
       }
-      setTodoCompleted(completedTmp);
-      setTodoTotal(totalTmp);
+      totalTmp[index] += 1;
     }
+
+    setTodoCompleted(completedTmp);
+    setTodoTotal(totalTmp);
   };
-  // 모달 기능 구현
-  const screenHeight = Dimensions.get('screen').height;
-
-  const panY = useRef(new Animated.Value(screenHeight)).current;
-
-  const resetBottomSheet = Animated.timing(panY, {
-    toValue: 0,
-    duration: 10,
-    useNativeDriver: true,
-  });
-
-  useEffect(() => {
-    if (levelUpModalVisible || levelUp_ModalVisible) {
-      resetBottomSheet.start();
-    }
-  }, [levelUpModalVisible, levelUp_ModalVisible]);
 
   useEffect(() => {
     // asyncGetAll();
@@ -302,11 +277,11 @@ const MainScreen = ({navigation: {navigate}}) => {
     let tmpArray = JSON.parse(
       JSON.stringify(selectTodo[selectTodo.length - 1]),
     );
-    for (var i = 0; i < tmpArray.length; i++) {
+    for (let i = 0; i < tmpArray.length; i++) {
       let tmpArrayDays = [];
 
       if (tmpArray[i].alarmTime != null) {
-        for (var j = 0; j < tmpArray[i].routineDays.length; j++) {
+        for (let j = 0; j < tmpArray[i].routineDays.length; j++) {
           let m = moment().utcOffset(0);
           // console.log(tmpArray[i].routineDays[j]);
           let year = parseInt(tmpArray[i].routineDays[j].day.split('-')[0], 10);
@@ -336,9 +311,7 @@ const MainScreen = ({navigation: {navigate}}) => {
         }
       }
 
-      console.log(tmpArray[i].routineId);
-
-      for (var k = 0; k < tmpArrayDays.length; k++) {
+      for (let k = 0; k < tmpArrayDays.length; k++) {
         let tmpId = tmpArray[i].routineId;
         let tmpTitle = tmpArray[i].routineTitle;
         let tmpDays = tmpArrayDays[k];
@@ -349,36 +322,25 @@ const MainScreen = ({navigation: {navigate}}) => {
         PushNotification.channelExists(`${tmpId}${tmpDays}`, function (exists) {
           // 채널 확인후 존재하지 않으면 채널 생성후 알림 설정
           if (!exists) {
-            PushNotification.createChannel(
-              {
-                channelId: `${tmpId}${tmpDays}`,
-                channelName: `${tmpId}${tmpDays}`,
-                channelDescription:
-                  'A channel to categorise your notifications',
-                playSound: false,
-                soundName: 'default',
-                vibrate: true,
-              },
-              // created => console.log(`createChannel returned '${created}'`),
-            );
+            PushNotification.createChannel({
+              channelId: `${tmpId}${tmpDays}`,
+              channelName: `${tmpId}${tmpDays}`,
+              channelDescription: 'A channel to categorise your notifications',
+              playSound: false,
+              soundName: 'default',
+              vibrate: true,
+            });
             PushNotification.localNotificationSchedule({
               channelId: `${tmpId}${tmpDays}`,
               id: `${tmpId}${tmpForId}`, // id must 32bit integer
               title: tmpTitle,
               message: `${nickName}님, 오늘의 루틴을 완료해보세요!`,
               date: tmpDays,
-              // repeatType: 'week',
-              // date: new Date(Date.now() + 30 * 1000), // 시간대 에러날시 서버시간 체크후 보정
             });
             PushNotification.getScheduledLocalNotifications(callback => {
               console.log(callback);
             });
           } else {
-            // PushNotification.deleteChannel(`${tmpId}${tmpDays}`)
-            // PushNotification.getScheduledLocalNotifications(callback => {
-            //   console.log(callback);
-            // });
-            //PushNotification.cancelAllLocalNotifications();
           }
         });
       }
@@ -555,7 +517,6 @@ const MainScreen = ({navigation: {navigate}}) => {
               setSelectedDate(day.dateString);
               checkSelectedDate(day.dateString);
             }}
-            // onDayPress={day => this.setState({selected_date: day.dateString})}
           />
         </CalendarProvider>
         <ProgressComponent />
@@ -628,7 +589,6 @@ const dstyleText = x =>
     bar: {
       marginLeft: x + 17,
       marginTop: 50.5,
-      // position: 'absolute',
     },
   });
 
