@@ -1,6 +1,6 @@
-# 키움 - KEYUM
+# 키움 - KEYUM 📱
 
-## 개발 배경
+## 개발 배경 💬
 
 - **나만의 루틴으로 갓생을 만들어보자**
 
@@ -17,9 +17,9 @@
   - 단순히 루틴만 수행하는 앱이 아닌 경험치(RP)를 제공하여 즐겁게 사용할 수 있도록 합니다. 진화 단계에 따른 캐릭터의 등장으로 보다 흥미있게 루틴의 수행을 장려할 수 있도록 할 것입니다.
     <br />
 
-## 기대 효과
+## 기대 효과 💡
 
-- 💡 MZ세대 중심의 ‘일상력’ 문화 확산
+- MZ세대 중심의 ‘일상력’ 문화 확산
   작고 재밌는 목표를 달성하여 얻는 사소한 성취에 큰 의미를 둠
   <br />
 
@@ -35,20 +35,28 @@
 
 - 사소한 성취감 달성 사이클을 짧게 하기 위해, 습관 수행 기간 단기간(2주)으로 고정
   - 단기간 동안 습관 수행 의도: 성취감 달성 사이클을 짧게 하기 위해, 단기간의 목표 수행 유도
-    <br />
 
-## 개발환경
+<br />
 
-<img width="100%" height="850" src="/BalanceUp/src/resource/image/front-skills.png"></img>
-<img width="100%" height="750" src="/BalanceUp/src/resource/image/back-skills.png"></img>
+## 개발환경 🛠
 
-## 앱화면
+### 프론트엔드
+
+<img width="100%" src="/BalanceUp/src/resource/image/front-skills.png">
+
+### 백엔드
+
+<img width="100%" src="/BalanceUp/src/resource/image/back-skills.png">
+
+<br />
+
+## 앱화면 🖥️
 
 <div>
-<img width="370" height="700" src="/BalanceUp/src/resource/image/03.png"></img>
-<img width="370" height="700" src="/BalanceUp/src/resource/image/04.png"></img>
-<img width="370" height="700" src="/BalanceUp/src/resource/image/05.png"></img>
-<img width="370" height="700" src="/BalanceUp/src/resource/image/06.png"></img>
-<img width="370" height="700" src="/BalanceUp/src/resource/image/07.png"></img>
-<img width="370" height="700" src="/BalanceUp/src/resource/image/08.png"></img>
+<img width="370" height="700" src="/BalanceUp/src/resource/image/03.png">
+<img width="370" height="700" src="/BalanceUp/src/resource/image/04.png">
+<img width="370" height="700" src="/BalanceUp/src/resource/image/05.png">
+<img width="370" height="700" src="/BalanceUp/src/resource/image/06.png">
+<img width="370" height="700" src="/BalanceUp/src/resource/image/07.png">
+<img width="370" height="700" src="/BalanceUp/src/resource/image/08.png">
 </div>
